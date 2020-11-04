@@ -6,71 +6,89 @@
 
 // Structure for holding Phonebook contact data
 typedef struct contact {
-    char lName[20], fName[20], phNumber[15], address[50];
+    char *lName, *fName, *phNumber, *address;
 
     struct contact *prev, *next;
 
 } contact_p;
 
 // Functions
-void initialize(char *, int *, contact_p *);
-int homePage(char *, int ,contact_p *);
-void addContact(int *, contact_p *);
-void deleteContact(int *, contact_p *);
-void modifyContact(contact_p *);
+void initialize();
+int homePage();
+void addContact();
+void deleteContact();
+void modifyContact();
+void exitPhonebook();
+
+// Global Variable
+char owner[30];
+int numEntries=0;
+contact_p *head;
 
 void main() {
-    char owner[30];
-    int numEntries=0;
-    contact_p *head = (contact_p *) malloc(sizeof(contact_p));
-    head->prev = NULL;
-    head->next = NULL;
-
-    initialize(owner, &numEntries, head);
+    initialize();
     
-    int menuChoice = homePage(owner, numEntries, head);
+    int menuChoice = homePage();
 
     switch (menuChoice)
     {
         case 1:
-            addContact(&numEntries, head);
+            addContact();
             break;
         
         case 2:
-            deleteContact(&numEntries, head);
+            deleteContact();
             break;
 
         case 3:
-            modifyContact(head);
+            modifyContact();
             break;
 
+        case 4:
+            printf("\n Exiting Phonebook...");
+            exitPhonebook();
         default:
             break;
     }
     
 }
 
-void initialize(char *Owner, int *NumEntries, contact_p *Head) {
+void initialize() {
     FILE *fp = fopen(fileName, "r");
-    char last[20], first[20], phone[15], homeAddress[50];
+    
+    contact_p *current = head;
+    current = (contact_p *) malloc(sizeof(contact_p));
+    current->prev=NULL;
+    current->next=NULL;
 
-    contact_p *current = Head;
-
-    fgets(Owner, 30, fp);
-    strtok(Owner, "\n");
-    fscanf(fp, "%d", NumEntries);
+    fgets(owner, 30, fp);
+    strtok(owner, "\n");
+    fscanf(fp, "%d", &numEntries);
+    fgetc(fp);
 
     while(!feof(fp)) {
-        fscanf(fp, "%s%*c %s%*c %s%*c %s", first, last, phone, homeAddress);
+        char string[120];
+                
+        fgets(string, 120, fp);
+        char *token = strtok(string, "\n");
 
-        strcpy(current->lName, last);
-        strcpy(current->fName, first);
-        strcpy(current->phNumber, phone);
-        strcpy(current->address, homeAddress);
+        token = strtok(string, ",");
+        current->fName = token;
+        token = strtok(NULL, ",");
+        current->lName = token;
+        token = strtok(NULL, ",");
+        current->phNumber = token;
+        token = strtok(NULL, ",");
+        current->address = token;
 
-        current->next = (contact_p*) malloc(sizeof(contact_p));
+        printf("\n %s\n %s\n %s\n %s\n", current->fName, current->lName, current->phNumber, current->address);
+
+
+        current->next = (contact_p *) malloc(sizeof(contact_p));
+        current->next->prev = current;
+        current->next->next = NULL;
         current = current->next;
-        current->next = NULL;
+
 
     }
 
@@ -78,39 +96,70 @@ void initialize(char *Owner, int *NumEntries, contact_p *Head) {
 
 }
 
-int homePage(char *Owner, int numEntries, contact_p *Head) {    
-    contact_p *current = Head;
+void exitPhonebook() {
+
+}
+
+int homePage() {    
+    contact_p *current = head;
     
-    printf(" %s's Phonebook Homepage\n\nEntries", Owner);
+    system("cls");
+
+    printf(" %s's Phonebook Homepage\n\nEntries", owner);
     printf("\n--------------------------------------------------------------------------------------");
     printf("\n First Name\t| Last Name\t| Phone Number\t| Address");
     printf("\n--------------------------------------------------------------------------------------");
 
-    for (contact_p *current = Head; current!=NULL; current=current->next) {
+    for (int i=0; i<numEntries; i++) {
+        printf("check");
         printf("\n %s\t| %s\t| %s\t| %s", current->fName, current->lName, current->phNumber, current->address);
-
+        current = current->next;
     }
 
-    printf("\n Menu Options:\n 1. Add Contact\t 2. Delete Contact\n 3. Modify Contact");
+    printf("\n Menu Options:\n 1. Add Contact\t\t 2. Delete Contact\n 3. Modify Contact\t 4. Exit Phonebook");
 
     int choice;
 
     do {
-        printf("\n\n Please enter a number between 1 and 3 indicating your selection...\n");
+        printf("\n\n Please enter a number between 1 and 4 indicating your selection...\n");
         scanf("%d", &choice);
-    } while (choice<1 || choice>3);
+    } while (choice<1 || choice>4);
 
     return choice;
 }
 
-void addContact(int *NumEntries, contact_p *Head) {
-    printf("\n\nAdding Contact\n\n");
+void addContact() {
+    contact_p *newEntry = (contact_p *) malloc(sizeof(contact_p));
+
+    system("cls");
+       
+    printf("\n\nAdding Contact\n");
+    printf("\n First Name: ");
+    scanf("%s", newEntry->fName);
+    printf("\n Last Name: ");
+    scanf("%s", newEntry->lName);
+    printf("\n Phone Number: ");
+    scanf("%s", newEntry->phNumber);
+    printf("\n Street Address: ");
+    scanf("%s", newEntry->address);
+    
+    
+    newEntry->next = head;
+    newEntry->prev = NULL;
+    head->prev = newEntry;
+    head = newEntry;
+    numEntries++;
+
+    printf("\n\n Contact Added\n Returning to homepage...");
+
+    homePage();
+
 }
 
-void deleteContact(int *NumEntries, contact_p *Head) {
+void deleteContact() {
     printf("\n\nDeleting Contact\n\n");
 }
 
-void modifyContact(contact_p *Head) {
+void modifyContact() {
     printf("\n\nModifying Contact\n\n");
 }
